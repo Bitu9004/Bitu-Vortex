@@ -1,4 +1,5 @@
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -165,18 +166,6 @@
             background: var(--neon-blue);
             box-shadow: 0 0 35px var(--neon-blue), inset 0 0 15px rgba(255,255,255,0.5);
             text-shadow: 0 0 5px #000;
-        }
-
-        #enterSystemBtn {
-            display: none;
-            border-color: var(--neon-red);
-            color: var(--neon-red);
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.15);
-        }
-
-        #enterSystemBtn:hover {
-            background: var(--neon-red);
-            box-shadow: 0 0 35px var(--neon-red), inset 0 0 15px rgba(255,255,255,0.5);
         }
 
         #scannerBar {
@@ -421,7 +410,6 @@
             <h1 class="huge-title glitch-hover">BITU_VORTEX</h1>
         </div>
         <div class="btn-box">
-            <button class="enter-btn" id="initSystemBtn" onclick="preInitializeVoice()">INITIALIZE PROTOCOL</button>
             <button class="enter-btn" id="enterSystemBtn" onclick="triggerSystemCore()">ENTER SYSTEM</button>
         </div>
     </div>
@@ -547,14 +535,13 @@
         initParticles();
         animateParticles();
 
-        // Voice Engine System
+        // Optimized Mobile Speech Synthesis Engine
         function speakText(phrase) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); 
+                window.speechSynthesis.cancel(); // Force clean audio queues
                 const utterance = new SpeechSynthesisUtterance(phrase);
                 const voices = window.speechSynthesis.getVoices();
                 
-                // Optimized voice selectors prioritizing clean mobile speech engines
                 const systemVoice = voices.find(voice => 
                     voice.name.includes('Google UK English Female') || 
                     voice.name.includes('Samantha') || 
@@ -567,77 +554,4 @@
                 utterance.pitch = 0.95;
                 window.speechSynthesis.speak(utterance);
             }
-        }
-
-        // Landing Screen Step 1: Pre-initialize Audio Context and Say Welcome
-        function preInitializeVoice() {
-            document.getElementById('initSystemBtn').style.display = 'none';
-            const enterBtn = document.getElementById('enterSystemBtn');
-            enterBtn.style.display = 'block';
-            
-            speakText("Welcome. Please click on Enter System to proceed.");
-        }
-
-        // Landing Screen Step 2: Transition to Core Network
-        function triggerSystemCore() {
-            const landing = document.getElementById('landingScreen');
-            const scanner = document.getElementById('scannerBar');
-            
-            scanner.style.display = 'block';
-            scanner.style.animation = 'scanTransition 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards';
-            
-            landing.style.opacity = '0';
-            landing.style.transform = 'scale(0.95)';
-
-            setTimeout(() => {
-                landing.style.display = 'none';
-                launchSecureWorkspace();
-            }, 750);
-        }
-
-        function launchSecureWorkspace() {
-            const dash = document.getElementById('dashboardScreen');
-            dash.style.visibility = 'visible';
-            dash.style.opacity = '1';
-
-            const cards = document.querySelectorAll('.scroll-reveal');
-            cards.forEach((card, index) => {
-                setTimeout(() => { card.classList.add('visible'); }, index * 120);
-            });
-
-            const progressBars = document.querySelectorAll('.progress-bar');
-            setTimeout(() => {
-                progressBars.forEach(bar => { bar.style.width = bar.getAttribute('data-width'); });
-            }, 500);
-
-            const welcomeMessage = "Access granted. Secure proxy terminal routing established successfully. Select any matrix element to stream telemetry audio.";
-            setTimeout(() => {
-                runTerminalTeletype(welcomeMessage);
-                speakText(welcomeMessage);
-            }, 300);
-        }
-
-        function runTerminalTeletype(text) {
-            const target = document.getElementById('typewriterText');
-            let index = 0;
-            target.innerHTML = '';
-            
-            function process() {
-                if (index < text.length) {
-                    target.innerHTML += text.charAt(index);
-                    index++;
-                    setTimeout(process, 20);
-                } else {
-                    target.innerHTML += '<span style="animation: pulseGlow 0.8s infinite alternate">█</span>';
-                }
-            }
-            process();
-        }
-
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.getVoices();
-            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-        }
-    </script>
-</body>
-</html>
+ 
