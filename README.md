@@ -25,6 +25,7 @@
             margin: 0;
             padding: 0;
             user-select: none;
+            -webkit-user-select: none;
         }
 
         body, html {
@@ -156,6 +157,7 @@
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
             transition: all 0.3s ease;
+            touch-action: manipulation;
         }
 
         .enter-btn:hover {
@@ -225,6 +227,7 @@
             overflow: hidden;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         .profile-card::after {
@@ -342,6 +345,7 @@
             transform: translateY(30px);
             opacity: 0;
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         .info-card.visible {
@@ -486,6 +490,13 @@
 
         window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
         window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length > 0) {
+                mouse.x = e.touches[0].clientX;
+                mouse.y = e.touches[0].clientY;
+            }
+        });
+        window.addEventListener('touchend', () => { mouse.x = null; mouse.y = null; });
 
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas);
@@ -539,17 +550,94 @@
         // Voice Engine System
         function speakText(phrase) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Stop talking instantly if another card is clicked
+                window.speechSynthesis.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(phrase);
                 const voices = window.speechSynthesis.getVoices();
-                const systemVoice = voices.find(voice => voice.name.includes('Google UK English Female') || voice.name.includes('Zira') || voice.lang.startsWith('en'));
+                
+                // Optimized voice selectors prioritizing clean mobile speech engines
+                const systemVoice = voices.find(voice => 
+                    voice.name.includes('Google UK English Female') || 
+                    voice.name.includes('Samantha') || 
+                    voice.name.includes('Zira') || 
+                    voice.lang.startsWith('en')
+                );
                 
                 if (systemVoice) utterance.voice = systemVoice;
                 utterance.rate = 1.0;
-                utterance.pitch = 0.9;
+                utterance.pitch = 0.95;
                 window.speechSynthesis.speak(utterance);
             }
         }
 
         // Landing Screen Step 1: Pre-initialize Audio Context and Say Welcome
-        function preInitializeVoic
+        function preInitializeVoice() {
+            document.getElementById('initSystemBtn').style.display = 'none';
+            const enterBtn = document.getElementById('enterSystemBtn');
+            enterBtn.style.display = 'block';
+            
+            speakText("Welcome. Please click on Enter System to proceed.");
+        }
+
+        // Landing Screen Step 2: Transition to Core Network
+        function triggerSystemCore() {
+            const landing = document.getElementById('landingScreen');
+            const scanner = document.getElementById('scannerBar');
+            
+            scanner.style.display = 'block';
+            scanner.style.animation = 'scanTransition 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards';
+            
+            landing.style.opacity = '0';
+            landing.style.transform = 'scale(0.95)';
+
+            setTimeout(() => {
+                landing.style.display = 'none';
+                launchSecureWorkspace();
+            }, 750);
+        }
+
+        function launchSecureWorkspace() {
+            const dash = document.getElementById('dashboardScreen');
+            dash.style.visibility = 'visible';
+            dash.style.opacity = '1';
+
+            const cards = document.querySelectorAll('.scroll-reveal');
+            cards.forEach((card, index) => {
+                setTimeout(() => { card.classList.add('visible'); }, index * 120);
+            });
+
+            const progressBars = document.querySelectorAll('.progress-bar');
+            setTimeout(() => {
+                progressBars.forEach(bar => { bar.style.width = bar.getAttribute('data-width'); });
+            }, 500);
+
+            const welcomeMessage = "Access granted. Secure proxy terminal routing established successfully. Select any matrix element to stream telemetry audio.";
+            setTimeout(() => {
+                runTerminalTeletype(welcomeMessage);
+                speakText(welcomeMessage);
+            }, 300);
+        }
+
+        function runTerminalTeletype(text) {
+            const target = document.getElementById('typewriterText');
+            let index = 0;
+            target.innerHTML = '';
+            
+            function process() {
+                if (index < text.length) {
+                    target.innerHTML += text.charAt(index);
+                    index++;
+                    setTimeout(process, 20);
+                } else {
+                    target.innerHTML += '<span style="animation: pulseGlow 0.8s infinite alternate">█</span>';
+                }
+            }
+            process();
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+            window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+        }
+    </script>
+</body>
+</html>
